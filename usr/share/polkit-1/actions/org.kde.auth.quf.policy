@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE policyconfig PUBLIC
+"-//freedesktop//DTD PolicyKit Policy Configuration 1.0//EN"
+"http://www.freedesktop.org/standards/PolicyKit/1.0/policyconfig.dtd">
+<policyconfig>
+<vendor>Aygıtı Hızlşı Formatla</vendor>
+<vendor_url></vendor_url>
+<icon_name>drive-removable-media-usb</icon_name>
+   <action id="org.kde.auth.quf.format" >
+      <description>Format Eylemi</description>
+      <message>Depolama Cihazı Biçimlendiriliyor</message>
+      <defaults>
+         <allow_inactive>no</allow_inactive>
+         <allow_active>auth_admin_keep</allow_active>
+      </defaults>
+   </action>
+</policyconfig>

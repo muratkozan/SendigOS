@@ -1,0 +1,29 @@
+                            -------> Installing the theme <-------
+
+[EN]
+
+System-wide install:
+Extract this folder to /usr/share/apps/desktoptheme directory
+
+User-only install:
+Extract this folder to ~/.kde4/share/apps/desktoptheme directory
+
+In some distros the "~/.kde4/" directory may be called "~/.kde/"
+
+Select and apply the theme in KDE System Settings > Workspace Appearance > Desktop Theme > Diamond
+
+
+[IT]
+
+Installazione nel sistema:
+Estrarre la cartella in /usr/share/apps/desktoptheme
+
+Installazione singolo utente:
+Estrarre la cartella in ~/.kde4/share/apps/desktoptheme
+
+In qualche distro può accadere "~/.kde4/" può essere definito come "~/.kde/"
+
+
+Selezionare e applicare il tema in Impostazioni di sistema di KDE > Aspetto dello spazio di lavoro > Tema del desktop > Diamante
+
+

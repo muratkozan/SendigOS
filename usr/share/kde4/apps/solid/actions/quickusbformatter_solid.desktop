@@ -1,0 +1,21 @@
+[Desktop Action open]
+Exec=/usr/bin/quickusbformatter udi %i
+Icon=drive-removable-media-usb
+Name=USB Aygıtını Formatla
+Name[pt_BR]=USB Aygıtını Formatla
+Name[sr]=Форматирај УСБ диск
+Name[sr@ijekavian]=Форматирај УСБ диск
+Name[sr@latin]=Formatiraj USB disk
+Name[sr@ijekavianlatin]=Formatiraj USB disk
+Name[ca]=Formata USB
+Name[es]=Formatear USB
+Name[fr]=Formater USB
+Name[gl]=Formatar
+Name[tr]=USB Aygıtını Formatla
+
+[Desktop Entry]
+Actions=open;
+Type=Service
+X-KDE-Action-Custom=true
+X-KDE-Solid-Predicate=IS StorageAccess
+

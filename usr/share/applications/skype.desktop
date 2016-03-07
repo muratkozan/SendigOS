@@ -1,0 +1,25 @@
+[Desktop Entry]
+Categories=Network;InstantMessaging;
+Comment[pt_BR]=Skype Anlık Mesajlaşma
+Comment[tr]=Skype Anlık Mesajlaşma
+Comment=Skype Anlık Mesajlaşma
+Encoding=UTF-8
+Exec=skype %U
+GenericName[pt_BR]=Skype Anlık Mesajlaşma
+GenericName[tr]=Skype Anlık Mesajlaşma
+GenericName=Skype Anlık Mesajlaşma
+Icon=skype.png
+MimeType=
+Name[pt_BR]=Skype
+Name[tr]=Skype
+Name=Skype
+Path=
+StartupNotify=true
+Terminal=false
+TerminalOptions=
+Type=Application
+X-DBUS-ServiceName=
+X-DBUS-StartupType=
+X-KDE-Protocols=skype
+X-KDE-SubstituteUID=false
+X-KDE-Username=

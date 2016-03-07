@@ -1,0 +1,20 @@
+[Unit]
+Description=Check if X failed and try fix
+Wants=graphical.target
+Wants=display-manager.service
+ConditionFileIsExecutable=/usr/sbin/check-x-failed
+
+[Service]
+Type=simple
+ExecStart=/bin/sh /usr/sbin/check-x-failed
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
+Alias=cxf
+Alias=check-x
+Alias=check-failed-x
+Alias=cfx
+# If you would like to use zypper to update
+# Also=network

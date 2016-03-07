@@ -1,0 +1,23 @@
+[Desktop Entry]
+Comment[pt_BR]=Bilgisayarınıza SendigOS İşletim Sistemini Kurun (Parola: sendigos)
+Comment[tr]=Bilgisayarınıza SendigOS İşletim Sistemini Kurun (Parola: sendigos)
+Comment=Bilgisayarınıza SendigOS İşletim Sistemini Kurun (Parola: sendigos)
+Exec=/sbin/yast2 live-installer
+GenericName[pt_BR]=Bilgisayarınıza SendigOS İşletim Sistemini Kurun (Parola: sendigos)
+GenericName[tr]=Bilgisayarınıza SendigOS İşletim Sistemini Kurun (Parola: sendigos)
+GenericName=Bilgisayarınıza SendigOS İşletim Sistemini Kurun (Parola: sendigos)
+Icon=yast-live-install
+MimeType=
+Name[pt_BR]=Kurulum Yap (şifre: sendigos)
+Name[tr]=Kurulum Yap (şifre: sendigos)
+Name=Kurulum Yap (şifre: sendigos)
+Path=
+StartupNotify=true
+Terminal=false
+TerminalOptions=
+Type=Application
+X-DBUS-ServiceName=
+X-DBUS-StartupType=
+X-KDE-SubstituteUID=true
+X-KDE-Username=
+X-SuSE-translate=true

@@ -1,0 +1,19 @@
+[Desktop Entry]
+Comment[pt_BR]=
+Comment=
+Exec=/bin/ksuperkey
+GenericName[pt_BR]=
+GenericName=
+Icon=system-run
+MimeType=
+Name[pt_BR]=
+Name=
+Path=
+StartupNotify=true
+Terminal=false
+TerminalOptions=
+Type=Application
+X-DBUS-ServiceName=
+X-DBUS-StartupType=
+X-KDE-SubstituteUID=false
+X-KDE-Username=

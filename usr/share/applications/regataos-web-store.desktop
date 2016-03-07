@@ -1,0 +1,24 @@
+[Desktop Entry]
+Categories=Network;WebBrowser;
+Comment[pt_BR]=Uygulama Mağazası
+Comment[tr]=Uygulama Mağazası
+Comment=Uygulama Mağazası
+Exec=chromium %u http://magaza.sendigos.org/
+GenericName[pt_BR]=Uygulama Mağazası
+GenericName[tr]=Uygulama Mağazası
+GenericName=Uygulama Mağazası
+Icon=/usr/share/regataos/regataoswebstore.png
+MimeType=
+Name[pt_BR]=SendigOS Web Store
+Name[tr]=SendigOS Web Store
+Name=SendigOS Web Store
+Path=
+StartupNotify=true
+Terminal=false
+TerminalOptions=
+Type=Application
+X-DBUS-ServiceName=
+X-DBUS-StartupType=
+X-KDE-Protocols=skype
+X-KDE-SubstituteUID=false
+X-KDE-Username=

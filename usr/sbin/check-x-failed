@@ -1,0 +1,318 @@
+# !/bin/bash
+#
+# Check if X failed. If so, try to fix and restart X.
+# This script is part of systemd check-x-failed.service implementation.
+#
+# Mindaugas Baranauskas <opensuse.lietuviu.kalba@gmail.com> 2014, 2015
+
+# Variables
+CXF_TMP_DIR=/tmp/systemd-check-x-failed-service/ ;
+CXF_TMP_FILE=CXF.cfg ;
+CXF_PACKAGE=systemd-check-x-failed-service ;
+XORG_CONF=/etc/X11/xorg.conf ;
+XORG_CONF_NEW=/root/xorg.conf.new ;
+XORG_CONF_I=/etc/X11/xorg.conf.install ;
+XORG_LOG=/var/log/Xorg.0.log ;
+TIMEOUT=120 ;
+
+##################################################
+# Some tools
+
+card_info () {
+/sbin/lspci -nnk | grep VGA -A2 ;
+}
+
+check_X () {
+  X_FAILED=0 ;
+  [ -z "$(tail -n 3 "${XORG_LOG}"   |  grep "Server terminated with error")" ] || X_FAILED=1 ;
+}
+
+rpm_update () {
+echo "CXF: searching RPM updates..."
+zypper --non-interactive --gpg-auto-import-keys in ${CXF_PACKAGE} ;
+}
+
+get_checkpoint () {
+  LAST_METHOD="NO" ;
+  if [ -f "${CXF_TMP_DIR}/${CXF_TMP_FILE}" ] ; then
+    LAST_METHOD=$(grep "^LAST_METHOD=" "${CXF_TMP_DIR}/${CXF_TMP_FILE}" | sed "s/LAST_METHOD=//") ;
+    LAST_TIME=$(  grep "^LAST_TIME="   "${CXF_TMP_DIR}/${CXF_TMP_FILE}" | sed "s/LAST_TIME=//") ;
+    [ 0 == $[0 + LAST_TIME] ] && LAST_TIME=$(date +%s) ;
+    if [ $(date +%s) -ge $[TIMEOUT + LAST_TIME] ] ; then
+      echo "CXF: ==== check-x-failed timeout... ===" >&2
+      stop_checking ;
+      exit 0 ;
+    fi
+  else
+    [ -d "${CXF_TMP_DIR}" ] || mkdir -p "${CXF_TMP_DIR}" ;
+    echo "LAST_METHOD=${LAST_METHOD}" > "${CXF_TMP_DIR}/${CXF_TMP_FILE}" ;
+    echo "LAST_TIME=$(date +%s)"    >> "${CXF_TMP_DIR}/${CXF_TMP_FILE}" ;
+  fi
+}
+
+init_3 () {
+  echo "CXF: Check if graphical interface is active. If so, leave it." ;
+  systemctl is-active graphical.target && systemctl isolate multi-user.target ;
+  echo "CXF: Hope we are with init 3..." ;
+  echo "CXF: Stop display manager service, if it is running."  ;
+  systemctl is-active display-manager.service && systemctl stop display-manager ;
+  echo "CXF: Hope display manager stopped..." ;
+}
+
+init_3_force () {
+  echo "CXF: Leaving graphical interface..." ;
+  systemctl isolate multi-user.target ;
+  echo "CXF: Hope leaved graphical interface..." ;
+  echo "CXF: Stopping display manager service..." ;
+  systemctl stop display-manager ;
+  echo "CXF: Hope display manager stopped..." ;
+}
+
+init_5 () {
+  echo "CXF: Check if graphical interface is active. If not, go to it..." ;
+  systemctl is-active graphical.target || systemctl isolate graphical.target ;
+  echo "CXF: Hope we reached graphical interface..." ;
+  echo "CXF: Start display manager service, if it is not running." ;
+  systemctl is-active display-manager.service || systemctl restart display-manager ;
+  echo "CXF: Hope display manager started..." ;
+}
+
+init_5_force () {
+  echo "CXF: Going to graphical interface..." ;
+  systemctl isolate graphical.target ;
+  echo "CXF: Hope we are with graphical interface..." ;
+  echo "CXF: Starting display manager service..." ;
+  systemctl restart display-manager ;
+  echo "CXF: Hope display manager started..." ;
+}
+
+##################################################
+# Rules of going between methods
+
+switch_method () {
+case "${LAST_METHOD}" in
+NO)
+  MSG="$(export=cat journalctl -k | grep -oP "Failed to load firmware \"radeon/.*" )" ;
+  if [ -z "${MSG}" ] ; then
+    NEW_METHOD="RELOAD"
+  else
+    NEW_METHOD="RELOAD_FW"
+  fi
+  ;;
+I_CONF)
+  NEW_METHOD="RECONF"
+  #NEW_METHOD="RECONF_prep"
+  ;;
+RECONF_prep)
+  NEW_METHOD="RECONF_job"
+  ;;
+RECONF_job|RECONF)
+# NEW_METHOD="SAX3"
+  NEW_METHOD="FINISH"
+  ;;
+RELOAD)
+#  NEW_METHOD="RELOAD_F"
+#  ;;
+#RELOAD_F)
+  if [ -f "${XORG_CONF}" ] ; then
+    NEW_METHOD="RMCONF" ;
+  else
+    [ -f "${XORG_CONF_I}" ] && NEW_METHOD="I_CONF" || NEW_METHOD="RECONF" ;
+  fi 
+  ;;
+RELOAD_FW)
+  NEW_METHOD="RELOAD"
+  ;;
+RMCONF)
+  [ -f "${XORG_CONF_I}" ] && NEW_METHOD="I_CONF" || NEW_METHOD="RECONF" ;
+  ;;
+SAX3)
+  NEW_METHOD="FINISH"
+  ;;
+*)
+  no_new_method
+  ;;
+esac
+echo "CXF: last method was \"${LAST_METHOD}\", lets try \"${NEW_METHOD}\"" >&2 ;
+sed -re "s/^LAST_METHOD=.*$/LAST_METHOD=${NEW_METHOD}/" -i "${CXF_TMP_DIR}/${CXF_TMP_FILE}" ;
+sed -re "s/^LAST_TIME=.*$/LAST_TIME=$(date +%s)/" -i "${CXF_TMP_DIR}/${CXF_TMP_FILE}" ;
+
+}
+
+##################################################
+# Execution of selected method
+
+exe_new_method () {
+case "${NEW_METHOD}" in
+I_CONF)
+  use_install_conf 
+  ;;
+INIT3)
+  init_3 
+  ;;
+RECONF_prep)
+  init_3_force
+  ;;
+RECONF_job|RECONF)
+  reconfigure_X
+  ;;
+RELOAD)
+  card_info
+  add_repo
+  ;;
+RELOAD_F)
+  reload_dm_force
+  ;;
+RELOAD_FW)
+  reload_firmware
+  ;;
+RMCONF)
+  remove_custom ;
+  remove_sax3 
+  ;;
+SAX3)
+  # remove_sax3 ;
+  sax3-monitor
+  ;;
+*)
+  card_info
+  no_new_method
+  ;;
+esac
+
+}
+
+##################################################
+# Functions for solutions
+
+
+add_repo () {
+  VERSION_ID="" ;
+  . /etc/os-release || true ;
+  NVIDIA_repo="ftp://download.nvidia.com/opensuse/13.2/" ;
+  AMD_repo="http://geeko.ioda.net/mirror/amd-fglrx/openSUSE_13.2/" ;
+  if [ ! -z "${VERSION_ID}" ] ; then
+     echo "CXF: add repositories for NVIDIA or AMD/ATI (if appropriate)..." ;
+     echo        "$(lspci -vnn | grep VGA)" ;
+     if   [ ! -z "$(lspci -vnn | grep VGA | grep Nvidia)" ] ; then
+       echo "CXF: adding repo ${NVIDIA_repo}" ;
+       zypper ar --no-check --refresh "${NVIDIA_repo}" "Nvidia - openSUSE 13.2"  || true ;
+     elif [ ! -z "$(lspci -vnn | grep VGA | grep AMD)" ] ; then
+       echo "CXF: adding repo ${AMD_repo}" ;
+       zypper ar --no-check --refresh "${AMD_repo}" "ATI >= hd5xxx - openSUSE 13.2"  || true ;
+     elif [ ! -z "$(lspci -vnn | grep VGA | grep ATI)" ] ; then
+       echo "CXF: adding repo ${AMD_repo}" ;
+       zypper ar --no-check --refresh "${AMD_repo}" "ATI >= hd5xxx - openSUSE 13.2"  || true ;
+     else
+       echo "CXF: no repositories added." ;
+     fi ;
+  fi ;
+  dummy ;
+}
+
+dummy () {
+  echo "CXF: Try use again current configuration..." ;
+}
+
+reload_dm () {
+  echo "CXF: Trying to reload display manager..." 
+  systemctl restart display-manager ;
+}
+
+reload_dm_force () {
+  echo "CXF: Force reload display manager..." 
+  systemctl stop display-manager ;
+  systemctl start display-manager ;
+}
+
+remove_custom () {
+  echo "CXF: removing custom X configuration"
+  [ -f "${XORG_CONF}" ] && mv -f "${XORG_CONF}" "${XORG_CONF}.cxf_old" ;
+}
+
+remove_sax3 () {
+  echo "CXF: removing old SAX3 configuration, if it exist"
+  rm -f /etc/X11/xorg.conf.d/*-sax*.conf || true ;
+  # mv -f /etc/X11/xorg.conf.d/50-synaptics.conf /etc/X11/xorg.conf.d/50-synaptics.conf.bak || true ;
+}
+
+reconfigure_X () {
+  Xorg -configure ;
+  [ -f "${XORG_CONF}" ] && mv -f "${XORG_CONF}" "${XORG_CONF}.cxf_old" ;
+  mv -f "${XORG_CONF_NEW}" "${XORG_CONF}" ;
+}
+
+use_install_conf () {
+  echo "CXF: using X configuration, generated during system installation "
+  [ -f "${XORG_CONF}" ] && mv -f "${XORG_CONF}" "${XORG_CONF}.cxf_old" ;
+  mv -f "${XORG_CONF_I}" "${XORG_CONF}" ;
+}
+
+reload_firmware () {
+  echo "CXF: Searching for firmware, that wasn't found during boot, but exist..." ;
+  # Radeon
+  MSG="$(export=cat journalctl -k | grep -oP "Failed to load firmware \"radeon/.*" )" ;
+  if [ ! -z "${MSG}" ] ; then
+    FW1="${MSG#Failed to load firmware \"}" ;
+    FW1="${FW1%\"}" ;
+    FW2="$(find /lib/firmware/ -name ${FW1#radeon/})" ;
+    if [ -z "${FW2}" ] ; then
+      echo "${FW1} firmware still not found." ;
+    else
+      echo "CXF: $FW1 firmware now found as ${FW2}" ;
+      echo "CXF: lets reload RADEON module" ;
+      modprobe -r radeon ;
+      sleep 1 ;
+      modprobe radeon ;
+    fi ;
+  else
+    echo "CXF: there is no radeon firmware related errors." ;
+  fi ;
+}
+
+no_new_method () {
+  echo "CXF: last method was \"${LAST_METHOD}\", no next method suggested." 
+  init_3 ;
+  echo "CXF: You can try reboot the computer and change kernel parameters," 
+  echo "CXF: e.g., add or remove \"nomodeset\" option." 
+  # If new version will be installed, then check-x-failed will be restarted
+  VERS1="$(rpm -q ${CXF_PACKAGE})" ;  
+  echo "CXF: You use $VERS1 "
+  echo "CXF: Check network. If it is active, update $CXF_PACKAGE rpm."
+  rm -f "${CXF_TMP_DIR}/${CXF_TMP_FILE}" ;
+  systemctl is-active network && sleep 5 && rpm_update || true ;
+  VERS2="$(rpm -q ${CXF_PACKAGE})" ;
+  if [ "${VERS1}" == "${VERS2}" ] ; then
+    stop_checking ;
+  fi ;
+}
+
+stop_checking () {
+  rm -f "${CXF_TMP_DIR}/${CXF_TMP_FILE}" ;
+  systemctl stop check-x-failed ;
+  exit 0 ;
+}
+
+
+##################################################
+# Main function
+try_fix_X () {
+  echo "CXF: ==== X.org server repair cycle started ===" >&2
+  init_3 ;
+  get_checkpoint ;
+  switch_method ;
+  exe_new_method ;
+  init_5_force ;
+  echo "CXF: ==== X.org server repair cycle finished ===" >&2
+}   
+
+# Main job
+[ -f "${XORG_LOG}" ] || exit 0 ;
+check_X ;
+if [ $X_FAILED == 1 ] ; then
+  try_fix_X ;
+else
+  get_checkpoint ;
+fi ;
+
+exit 0 ;

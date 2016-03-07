@@ -1,0 +1,26 @@
+[Desktop Entry]
+Categories=System;Utility;Archiving;
+Comment[pt_BR]=Disk Üzerinde Uygulama Kaydetmeden Önce ISO, IMG, BIN, MDF e NRG Kullanır.
+Comment[tr]=Disk Üzerinde Uygulama Kaydetmeden Önce ISO, IMG, BIN, MDF e NRG Kullanır.
+Comment=Disk Üzerinde Uygulama Kaydetmeden Önce ISO, IMG, BIN, MDF e NRG Kullanır.
+Encoding=UTF-8
+Exec=furiusisomount
+GenericName[pt_BR]=Furius ISO Dağı
+GenericName[tr]= Furius ISO Dağı
+GenericName=Furius ISO Dağı
+GenericName[en_GB]=
+Icon=media-optical
+MimeType=
+Name[pt_BR]=Furius ISO Dağı
+Name=Furius ISO Dağı
+Path=
+StartupNotify=true
+Terminal=false
+TerminalOptions=
+Type=Application
+Version=1.0
+X-DBUS-ServiceName=
+X-DBUS-StartupType=
+X-Desktop-File-Install-Version=0.22
+X-KDE-SubstituteUID=false
+X-KDE-Username=

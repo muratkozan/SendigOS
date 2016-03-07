@@ -1,0 +1,23 @@
+[Desktop Entry]
+Categories=System;PackageManager;X-SuSE-ControlCenter-System;
+Comment[pt_BR]=YaST İle Kurun
+Comment[tr]=YaST İle Kurun
+Comment=YaST İle Kurun
+Encoding=UTF-8
+Exec=kdesu /sbin/yast2 sw_single
+GenericName[pt_BR]=YaST İle Kurun
+Comment[tr]=YaST İle Kurun
+GenericName=YaST İle Kurun
+Icon=package-manager-icon
+MimeType=application/x-rpm;application/x-rpm;
+Name[pt_BR]=YaST İle Kurun
+Name=YaST İle Kurun
+Path=
+StartupNotify=true
+Terminal=false
+TerminalOptions=
+Type=Application
+X-DBUS-ServiceName=
+X-DBUS-StartupType=none
+X-KDE-SubstituteUID=false
+X-KDE-Username=
